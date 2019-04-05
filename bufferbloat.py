@@ -113,8 +113,8 @@ def start_iperf(net):
     # long lived TCP flow. You may need to redirect iperf's stdout to avoid blocking.
 
 def start_webserver(net):
-    h2 = net.get('h2')
-    proc = h2.popen("python http/webserver.py", shell=True)
+    h1 = net.get('h1')
+    proc = h1.popen("python http/webserver.py", shell=True)
     sleep(1)
     return [proc]
 
