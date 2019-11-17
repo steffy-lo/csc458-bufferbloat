@@ -26,6 +26,7 @@ parser.add_argument('--out', '-o',
 
 args = parser.parse_args()
 
+
 def parse_ping(fname):
     ret = []
     lines = open(fname).readlines()
@@ -42,6 +43,7 @@ def parse_ping(fname):
         except:
             break
     return ret
+
 
 m.rc('figure', figsize=(16, 6))
 fig = figure()

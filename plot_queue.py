@@ -48,12 +48,15 @@ if args.legend is None:
     for file in args.files:
         args.legend.append(file)
 
-to_plot=[]
+to_plot = []
+
+
 def get_style(i):
     if i == 0:
         return {'color': 'red'}
     else:
         return {'color': 'black', 'ls': '-.'}
+
 
 m.rc('figure', figsize=(16, 6))
 fig = figure()

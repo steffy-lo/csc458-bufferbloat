@@ -14,8 +14,10 @@ parser.add_argument('-H', '--histogram', dest="histogram",
 
 args = parser.parse_args()
 
+
 def first(lst):
     return map(lambda e: e[0], lst)
+
 
 def second(lst):
     return map(lambda e: e[1], lst)
@@ -40,6 +42,8 @@ source code: http://lxr.free-electrons.com/source/net/ipv4/tcp_probe.c?v=3.12
 9: srtt
 10: rcv_wnd (3.12 and later)
 """
+
+
 def parse_file(f):
     num_fields = 10
     linux_ver = os.uname()[2].split('.')[:2] # example '3.13.0-24-generic' 
@@ -58,7 +62,7 @@ def parse_file(f):
             if fields[2].split(':')[1] != args.port:
                 continue
         else:
-#            print "using sport %s (compare with %s)" % (args.port, fields[1].split(':')[1])
+            # print "using sport %s (compare with %s)" % (args.port, fields[1].split(':')[1])
             if fields[1].split(':')[1] != args.port:
                 continue
         sport = int(fields[1].split(':')[1])
@@ -69,8 +73,10 @@ def parse_file(f):
         srtt.append(int(fields[-1]))
     return times, cwnd
 
+
 added = defaultdict(int)
 events = []
+
 
 def plot_cwnds(ax):
     global events
@@ -84,6 +90,8 @@ def plot_cwnds(ax):
             ax.plot(t, cwnd)
 
     events.sort()
+
+
 total_cwnd = 0
 cwnd_time = []
 
