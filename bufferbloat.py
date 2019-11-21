@@ -76,7 +76,7 @@ class BBTopo(Topo):
     def build(self, n=2):
         # Here are two hosts
         hosts = []
-        for i in range(1, n+1):
+        for i in range(1, n + 1):
             hosts.append(self.addHost('h%d' % i))
 
         # Here I have created a switch.  If you change its name, its
@@ -87,11 +87,19 @@ class BBTopo(Topo):
         h1 = hosts[0]
         h2 = hosts[1]
         bw_host = args.bw_host
+        bw_net = args.bw_net
         delay = args.delay
         maxq = args.maxq
 
-        self.addLink(self, h1, switch, bw=bw_host, delay='%sms' % delay, maxq_size=maxq)
-        self.addLink(self, switch, h2, bw=bw_host, delay='%sms' % delay, maxq_size=maxq)
+        self.addLink(h1, switch,
+                     bw=bw_host,
+                     delay='%sms' % delay,
+                     max_queue_size=maxq)
+
+        self.addLink(switch, h2,
+                     bw=bw_net,
+                     delay='%sms' % delay,
+                     max_queue_size=maxq)
 
 # Simple wrappers around monitoring utilities.  You are welcome to
 # contribute neatly written (using classes) monitoring scripts for
@@ -118,7 +126,7 @@ def start_qmon(iface, interval_sec=0.1, outfile="q.txt"):
 
 
 def start_iperf(net):
-    h2 = net.get('h2')
+    h2 = net.get("h2")
     print "Starting iperf server..."
     # For those who are curious about the -w 16m parameter, it ensures
     # that the TCP flow is not receiver window limited.  If it is,
@@ -128,12 +136,12 @@ def start_iperf(net):
     # TODO: Start the iperf client on h1.  Ensure that you create a
     #  long lived TCP flow. You may need to redirect iperf's stdout to avoid blocking.
 
-    h1 = net.get('h1')
+    h1 = net.get("h1")
     h1.cmd("iperf -c %s -t %s", h2.IP(), args.time)
 
 
 def start_webserver(net):
-    h1 = net.get('h1')
+    h1 = net.get("h1")
     proc = h1.popen("python http/webserver.py", shell=True)
     sleep(1)
     return [proc]
@@ -150,18 +158,19 @@ def start_ping(net):
     # Note that if the command prints out a lot of text to stdout, it will block
     # until stdout is read. You can avoid this by runnning popen.communicate() or
     # redirecting stdout
-    h1 = net.get('h1')
-    h2 = net.get('h2')
+    h1 = net.get("h1")
+    h2 = net.get("h2")
     popen = h1.popen("ping -c %s -i 0.1 %s > %s/ping.txt" % (args.time, h2.IP(), args.dir), shell=True)
     popen.communicate()
 
 
 def get_timings(net):
-    h1 = net.get('h1')
-    h2 = net.get('h2')
+    h1 = net.get("h1")
+    h2 = net.get("h2")
     time_taken = []
     for i in range(3):
-        time_taken.append(float(h2.popen('curl -o /dev/null -s -w %%{time_total} %s/http/index.html' % h1.IP())))
+        t = h2.popen("curl -o /dev/null -s -w %%{time_total} %s/http/index.html" % h1.IP()).communicate()[0]
+        time_taken.append(float(t))
 
     return mean(time_taken)
 
@@ -231,7 +240,7 @@ def bufferbloat():
     # You don't need to plot them.  Just note it in your
     # README and explain.
 
-    f = open('./fetch_results.txt', 'w+')
+    f = open('./results.txt', 'w+')
     f.write("average: %s" % mean(measurements))
     f.write("std dev: %s" % stdev(measurements))
     f.close()
