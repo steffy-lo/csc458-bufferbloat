@@ -76,7 +76,7 @@ class BBTopo(Topo):
     def build(self, n=2):
         # Here are two hosts
         hosts = []
-        for i in range(1, n + 1):
+        for i in range(1, n+1):
             hosts.append(self.addHost('h%d' % i))
 
         # Here I have created a switch.  If you change its name, its
@@ -87,7 +87,7 @@ class BBTopo(Topo):
         h1 = hosts[0]
         h2 = hosts[1]
         bw_host = args.bw_host
-        bw_net = args.bw_net
+	bw_net = args.bw_net
         delay = args.delay
         maxq = args.maxq
 
@@ -126,7 +126,7 @@ def start_qmon(iface, interval_sec=0.1, outfile="q.txt"):
 
 
 def start_iperf(net):
-    h2 = net.get("h2")
+    h2 = net.get('h2')
     print "Starting iperf server..."
     # For those who are curious about the -w 16m parameter, it ensures
     # that the TCP flow is not receiver window limited.  If it is,
@@ -136,12 +136,12 @@ def start_iperf(net):
     # TODO: Start the iperf client on h1.  Ensure that you create a
     #  long lived TCP flow. You may need to redirect iperf's stdout to avoid blocking.
 
-    h1 = net.get("h1")
-    h1.cmd("iperf -c %s -t %s", h2.IP(), args.time)
+    h1 = net.get('h1')
+    h1.cmd("iperf -c %s -t %s" % (h2.IP(), args.time))
 
 
 def start_webserver(net):
-    h1 = net.get("h1")
+    h1 = net.get('h1')
     proc = h1.popen("python http/webserver.py", shell=True)
     sleep(1)
     return [proc]
@@ -160,19 +160,18 @@ def start_ping(net):
     # redirecting stdout
     h1 = net.get("h1")
     h2 = net.get("h2")
-    popen = h1.popen("ping -c %s -i 0.1 %s > %s/ping.txt" % (args.time, h2.IP(), args.dir), shell=True)
+    popen = h1.popen("ping -c %s -i 0.1 %s > %s/ping.txt" % (args.time * 10, h2.IP(), args.dir), shell=True)
     popen.communicate()
 
 
-def get_timings(net):
-    h1 = net.get("h1")
-    h2 = net.get("h2")
-    time_taken = []
+def get_timings(net, h1, h2):
+    timings = []
     for i in range(3):
-        t = h2.popen("curl -o /dev/null -s -w %%{time_total} %s/http/index.html" % h1.IP()).communicate()[0]
-        time_taken.append(float(t))
+	fetch = "curl -o /dev/null -s -w %{time_total} " + h1.IP() + "/http/index.html"
+        time = h2.popen(fetch).communicate()[0]
+        timings.append(float(time))
 
-    return mean(time_taken)
+    return mean(timings)
 
 
 def bufferbloat():
@@ -194,7 +193,6 @@ def bufferbloat():
 
     # Start all the monitoring processes
     start_tcpprobe("cwnd.txt")
-    start_ping(net)
 
     # TODO: Start monitoring the queue sizes.  Since the switch I
     #  created is "s0", I monitor one of the interfaces.  Which
@@ -206,8 +204,10 @@ def bufferbloat():
     qmon = start_qmon(iface='s0-eth2', outfile='%s/q.txt' % args.dir)
 
     # TODO: Start iperf, webservers, etc.
-    start_iperf(net)
-    start_ping(net)
+    iperf_proc = Process(target=start_iperf, args=(net,))
+    ping_proc = Process(target=start_ping, args=(net,))
+    iperf_proc.start()
+    ping_proc.start()
     start_webserver(net)
 
     # Hint: The command below invokes a CLI which you can use to
@@ -226,9 +226,11 @@ def bufferbloat():
     # loop below useful.
     measurements = []
     start_time = time()
+    h1 = net.get("h1")
+    h2 = net.get("h2")
     while True:
         # do the measurement (say) 3 times.
-        measurements.append(get_timings(net))
+        measurements.append(get_timings(net, h1, h2))
         sleep(1)
         now = time()
         delta = now - start_time
@@ -240,9 +242,10 @@ def bufferbloat():
     # You don't need to plot them.  Just note it in your
     # README and explain.
 
-    f = open('./results.txt', 'w+')
-    f.write("average: %s" % mean(measurements))
-    f.write("std dev: %s" % stdev(measurements))
+    print "Writing results..."
+    f = open("./results.txt", "w+")
+    f.write("average: %s \n" % mean(measurements))
+    f.write("std dev: %s \n" % stdev(measurements))
     f.close()
 
     stop_tcpprobe()
