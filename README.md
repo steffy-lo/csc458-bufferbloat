@@ -1,3 +1,21 @@
+This assignment involves studying the dynamics of TCP in home networks as follows:
+Within Mininet, the following topology is to be created. 
+Here h1 is a home computer that has a fast connection (1Gb/s) to a home router with a slow uplink connection (10Mb/s). 
+The round-trip propagation delay, or the minimum RTT between h1 and h2 is 4ms. 
+The router buffer size can hold 100 full sized ethernet frames (about 150kB with an MTU of 1500 bytes).
+
+Then the following steps are implemented:
+1. Start a long lived TCP flow sending data from h1 to h2. Use iperf.
+2. Send pings from h1 to h2 10 times a second and record the RTTs.
+3. Plot the time series of the following:
+	- The long lived TCP flow’s cwnd
+	- The RTT reported by ping
+	- Queue size at the bottleneck
+4. Spawn a webserver on h1. Periodically download the index.html web page (three times every five seconds) from h1 and measure how long it takes to fetch it (on average).
+The long lived flow, ping train, and webserver downloads should all be happening simultaneously.
+The above experiment is then repeated with a smaller router buffer size (Q=20 packets).
+
+# Instructions
 Please begin by installing the statistics module by running "sudo pip install statistics".
 Next, run a single shell command "sudo ./run.sh". This should produce 6 plots:
 3 each for router buffer sizes 100 and 20 packets and a results.txt containing the average and std dev
