@@ -24,6 +24,7 @@ Note: The results.txt is in w+ mode so need to check for the result appended for
 before it gets overwritten with the second run results (bb-q100). A previous_results.txt is included
 that contains the results for one of the runs.
 
+# Questions
 1. Why do you see a differences in webpage fetch times with short and large router buffers?
 
    One of the runs had results as follows:
